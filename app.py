@@ -14,6 +14,7 @@ week = {'mon': 'Понедельник', 'tue': 'Вторник', 'wed': 'Сре
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -23,7 +24,7 @@ class Teacher(db.Model):
     name = db.Column(db.String(100), nullable=False)
     about = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, nullable=False)
-    picture = db.Column(db.Stirng(550), nullable=False)
+    picture = db.Column(db.String(550), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     goal = db.Column(db.String(350), nullable=False)
     free = db.Column(db.Text, nullable=False)

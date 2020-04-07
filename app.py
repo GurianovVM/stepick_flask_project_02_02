@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request
-import json, random
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+import json
+import random
 
 with open('./static/goals.json', 'r') as f:
     goals = json.load(f)
@@ -10,6 +13,20 @@ with open('./static/teachers.json', 'r') as f:
 week = {'mon': 'Понедельник', 'tue': 'Вторник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница', 'sat': 'Суббота', 'sun': 'Воскресенье'}
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+class Teacher(db.Model):
+    __tablename__ = 'teachers'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    about = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+    picture = db.Column(db.Stirng(550), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    goal = db.Column(db.String(350), nullable=False)
+    free = db.Column(db.Text, nullable=False)
 
 @app.route('/')
 def render_main():

@@ -23,13 +23,13 @@ migrate = Migrate(app, db)
 class Teacher(db.Model):
     __tablename__ = 'teachers'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    about = db.Column(db.Text, nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    about = db.Column(db.String(1000), nullable=False)
     rating = db.Column(db.Float, nullable=False)
     picture = db.Column(db.String(550), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     goal = db.Column(db.String(350), nullable=False)
-    free = db.Column(db.Text, nullable=False)
+    free = db.Column(db.String(1000), nullable=False)
     reverse = db.relationship('Reserve')
 
 
@@ -50,7 +50,17 @@ class Select(db.Model):
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.Integer, nullable=False)
     goal = db.Column(db.String(30), nullable=False)
-    time_learning = db.Columb(db.Integer, nullable=False)
+    time_learning = db.Column(db.String(20), nullable=False)
+
+
+def db_teachers():
+    for t in teachers:
+        create_teacher = Teacher(name=t['name'], about=t['about'], rating=t['rating'], picture=t['picture'],
+                                 price=t['price'], goal=str(t['goals']), free=str(t['free']))
+        db.session.add(create_teacher)
+    db.session.commit()
+
+# db_teachers() #заполнение таблицы учителей
 
 
 @app.route('/')

@@ -1,9 +1,5 @@
-import json
-
 goals = {"travel": "Для путешествий", "study": "Для учебы", "work": "Для работы", "relocate": "Для переезда", "program": "Для программирования"}
-with open('static/goals.json', 'w') as f:
-    json.dump(goals, f, ensure_ascii=False)
-print('goals.json')
+
 teachers = [
 
     {
@@ -324,7 +320,3 @@ teachers = [
         }
     },
 ]
-with open('static/teachers.json', 'w') as f:
-    json.dump(teachers, f, ensure_ascii=False)
-
-print('teachers.json')

@@ -10,13 +10,15 @@ with open('./static/goals.json', 'r') as f:
 with open('./static/teachers.json', 'r') as f:
     teachers = json.load(f)
 
-week = {'mon': 'Понедельник', 'tue': 'Вторник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница', 'sat': 'Суббота', 'sun': 'Воскресенье'}
+week = {'mon': 'Понедельник', 'tue': 'Вторник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница', 'sat': 'Суббота',
+        'sun': 'Воскресенье'}
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 
 class Teacher(db.Model):
     __tablename__ = 'teachers'
@@ -28,6 +30,28 @@ class Teacher(db.Model):
     price = db.Column(db.Integer, nullable=False)
     goal = db.Column(db.String(350), nullable=False)
     free = db.Column(db.Text, nullable=False)
+    reverse = db.relationship('Reserve')
+
+
+class Reserve(db.Model):
+    __tablename__ = 'reserves'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.Integer, nullable=False)
+    day = db.Column(db.String(3), nullable=False)
+    time = db.Column(db.Integer, nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'))
+    teacher = db.relationship('Teacher')
+
+
+class Select(db.Model):
+    __tablename__ = 'selections'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.Integer, nullable=False)
+    goal = db.Column(db.String(30), nullable=False)
+    time_learning = db.Columb(db.Integer, nullable=False)
+
 
 @app.route('/')
 def render_main():
@@ -44,6 +68,7 @@ def render_main():
     temp_goal['relocate'] = '🚜 ' + goals['relocate']
     return render_template('index.html', goals=temp_goal, teacher=teacher)
 
+
 @app.route('/goals/<goal>/')
 def render_goal(goal):
     goal_teacher = []
@@ -58,6 +83,7 @@ def render_goal(goal):
             goal = goals[i]
     return render_template('goal.html', goal=goal, teachers=goal_teacher)
 
+
 @app.route('/profiles/<id_teacher>/')
 def render_profiles(id_teacher):
     teacher = {}
@@ -65,6 +91,7 @@ def render_profiles(id_teacher):
         if int(id_teacher) == teachers[i]['id']:
             teacher = teachers[i]
     return render_template('profile.html', teacher=teacher, week=week, goals=goals)
+
 
 @app.route('/request/')
 def render_request():
@@ -143,6 +170,7 @@ def render_request():
       </form>"""
     return render_template('request.html')
 
+
 @app.route('/request_done/', methods=['POST'])
 def render_request_done():
     requests = {'client_goal': request.form.get('goal'),
@@ -153,6 +181,7 @@ def render_request_done():
         json.dump(requests, f, ensure_ascii=False)
         f.write('\n')
     return render_template('request_done.html')
+
 
 @app.route('/booking/<id_teacher>/<day>/<time>/')
 def render_booking(id_teacher, day, time):
@@ -187,13 +216,14 @@ def render_booking(id_teacher, day, time):
         </form>"""
     return render_template('booking.html', teacher=teacher, day=day, hour=time, week=week)
 
+
 @app.route('/booking_done/', methods=['POST'])
 def form_booking():
     booking = {'client_day': request.form.get('clientWeekday'),
-                'client_time': request.form.get('clientTime'),
-                'teacher_id': request.form.get('clientTeacher'),
-                'client_name': request.form.get('clientName'),
-                'client_phone': request.form.get('clientPhone')}
+               'client_time': request.form.get('clientTime'),
+               'teacher_id': request.form.get('clientTeacher'),
+               'client_name': request.form.get('clientName'),
+               'client_phone': request.form.get('clientPhone')}
     with open('booking.jsonlines', 'a', encoding='utf-8') as f:
         json.dump(booking, f)
         f.write('\n')
@@ -201,11 +231,14 @@ def form_booking():
     for i in week:
         if booking['client_day'] == i:
             client_week_day = week[i]
-    return render_template('booking_done.html', name=booking['client_name'], day=client_week_day, hour=booking['client_time'], phone=booking['client_phone'])
+    return render_template('booking_done.html', name=booking['client_name'], day=client_week_day,
+                           hour=booking['client_time'], phone=booking['client_phone'])
+
 
 @app.route('/all/')
 def render_all_profiles():
     return render_template('all_profile.html', teachers=teachers)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

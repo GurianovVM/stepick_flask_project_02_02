@@ -3,7 +3,8 @@
 {% block conteiner %}
   <main class="container mt-5">
     <div class="col-12 col-sm-10 col-lg-6 offset-lg-3 offset-sm-1">
-      <form action="/request_done/" class="card mb-5" method="POST">
+      <form action="{{ url_for('render_request')}}" class="card mb-5" method="POST">
+        {{ form.csrf_token }}
         <div class="card-body text-center pt-5">
           <h1 class="h3 card-title mt-4 mb-2">Подбор преподавателя</h1>
           <p class="px-5">Напишите, чего вам нужно и&nbsp;мы&nbsp;подберем отличных&nbsp;ребят</p>
@@ -12,68 +13,38 @@
         <div class="card-body mx-3">
           <div class="row">
             <div class="col">
-              <p>Какая цель занятий?</p>
+              {{ form.goal.label }}
+              {% for radio in form.goal %}
               <div class="form-check ">
-                <input type="radio" class="form-check-input" name="goal" value="travel" id="goal1" checked>
-                <label class="form-check-label" for="goal1">
-                  Для путешествий
-                </label> 
+                {{ radio(class_="form-check-input") }}
+                {{ radio.label(class_="form-check-label") }}
               </div>
-              <div class="form-check ">
-                <input type="radio" class="form-check-input" name="goal" value="learn" id="goal2">
-                <label class="form-check-label" for="goal2">
-                  Для школы
-                </label>
-              </div>
-              <div class="form-check ">
-                <input type="radio" class="form-check-input" name="goal" value="work" id="goal3">
-                <label class="form-check-label" for="goal2">
-                  Для работы
-                </label>
-              </div>
-              <div class="form-check ">
-                <input type="radio" class="form-check-input" name="goal" value="move" id="goal4">
-                <label class="form-check-label" for="goal2">
-                  Для переезда
-                </label>
-              </div>
+              {% endfor %}
             </div>
             <div class="col">
-              <p>Сколько времени есть?</p>
+              {{ form.limit_time.label }}
+              {% for radio in form.limit_time %}
               <div class="form-check">
-                <input type="radio" class="form-check-input" name="time" value="1-2" id="time1">
-                <label class="form-check-label" for="time1">
-                  1-2 часа в&nbsp;неделю
-                </label> 
+                {{ radio(class_="form-check-input") }}
+                {{ radio.label(class_="form-check-label") }}
               </div>
-              <div class="form-check">
-                <input type="radio" class="form-check-input" name="time" value="3-5" id="time2">
-                <label class="form-check-label" for="time2">
-                  3-5 часов в&nbsp;неделю
-                </label>
-              </div>
-              <div class="form-check">
-                <input type="radio" class="form-check-input" name="time" value="5-7" id="time3" checked>
-                <label class="form-check-label" for="time3">
-                  5-7 часов в&nbsp;неделю
-                </label> 
-              </div>
-              <div class="form-check">
-                <input type="radio" class="form-check-input" name="time" value="7-10" id="time4">
-                <label class="form-check-label" for="time4">
-                  7-10 часов в&nbsp;неделю
-                </label>
-              </div>
+              {% endfor %}
             </div>
           </div>
         </div>
         <hr>
         <div class="card-body mx-3">
-          <label class="mb-1 mt-2">Вас зовут</label>
-          <input class="form-control" type="text" placeholder="ФИО" name = "request_name">
-          <label class="mb-1 mt-2">Ваш телефон</label>
-          <input class="form-control" type="text" placeholder="+7. . ." name = "request_phone">
-          <input type="submit" class="btn btn-primary mt-4 mb-2" value="Найдите мне преподавателя">
+          {{ form.name.label(class_="mb-1 mt-2") }}
+          {% for err in form.name.errors %}
+              <p class="text-danger">{{err}}</p>
+            {% endfor %}
+          {{ form.name(class_="form-control", placeholder="ФИО") }}
+          {{ form.phone.label(class_="mb-1 mt-2") }}
+          {% for err in form.phone.errors %}
+              <p class="text-danger">{{err}}</p>
+            {% endfor %}
+          {{ form.phone(class_="form-control", placeholder="+7. . .") }}
+          {{ form.submit(class_="btn btn-primary mt-4 mb-2") }}
         </div>
       </form>
     </div>

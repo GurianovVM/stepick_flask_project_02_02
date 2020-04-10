@@ -7,16 +7,16 @@
       <div class="col-10 col-md-6 offset-1 offset-md-3">
         <div class="card mb-3">
           <div class="card-body text-center pt-5">
-            <img src="../static/check.png" class="mb-3" width="65" alt="">
+            <img src="/static/check.png" class="mb-3" width="65" alt="">
             <h2 class="h3 card-title mt-4 mb-2">Запрос отправлен!</h2>
             <p>Скоро мы вам перезвоним</p>
           </div>
           <hr />
           <div class="card-body mx-5">
-            <p><b>Цель занятий:</b> Для работы</p>
-            <p><b>Времени есть:</b> 1-2 часа в неделю</p>
-            <p><b>Имя:</b> Александр</p>
-            <p><b>Телефон:</b> +7 944 322 22 11</p>
+            <p><b>Цель занятий:</b> {{ goal }}</p>
+            <p><b>Времени есть:</b> {{ time }} часа в неделю</p>
+            <p><b>Имя:</b> {{ name }}</p>
+            <p><b>Телефон:</b> {{ phone }}</p>
           </div>
         </div>
       </div>

@@ -4,29 +4,30 @@
   <main class="container mt-3">
     <div class="row mt-5">
       <div class="col-10 col-md-6 offset-1 offset-md-3 mb-3">
-        <form action="/booking_done/" class="card mb-3" method="POST">
+        <form action="{{ url_for('render_booking',id_teacher=id, day=day, time=time) }}" class="card mb-3" method="POST">
+          {{ form.csrf_token }}
           <div class="card-body text-center pt-5">
             <img src="{{ teacher.picture }}" class="mb-3" width="95" alt="">
             <h2 class="h5 card-title mt-2 mb-2">{{teacher.name}}</h2>
             <p class="my-1">Запись на пробный урок</p>
-            <p class="my-1">{%for i,j in week.items()%}{%if day == i%}{{j}}{%endif%}{%endfor%}, {{hour}}:00</p>
+            <p class="my-1">{{ client_day }}, {{time}}:00</p>
           </div>
           <hr />
           <div class="card-body mx-3">
-              <div class="row">
-                  <input class="form-control" type="hidden" name="clientWeekday" value="{{day}}">
-                  <input class="form-control" type="hidden" name="clientTime" value="{{hour}}">
-                  <input class="form-control" type="hidden" name="clientTeacher" value="{{teacher.id}}">
-              </div>
 
-            <label class="mb-1 mt-2" for="clientName">Вас зовут</label>
-            <input class="form-control" type="text" name="clientName" id="clientName">
+            {{ form.name.label(class_="mb-1 mt-2") }}
+            {% for err in form.name.errors %}
+              <p class="text-danger">{{err}}</p>
+            {% endfor %}
+            {{ form.name(class_="form-control", placeholder="ФИО") }}
 
-            <label class="mb-1 mt-2" for="clientPhone">Ваш телефон</label>
-            <input class="form-control" type="tel"  name="clientPhone" id="clientPhone">
+            {{ form.phone.label(class_="mb-1 mt-2") }}
+            {% for err in form.phone.errors %}
+              <p class="text-danger">{{err}}</p>
+            {% endfor %}
+            {{ form.phone(class_="form-control", placeholder="+7. . . ") }}
 
-            <input type="submit" class="btn btn-primary btn-block mt-4" value="Записаться на пробный урок">
-
+            {{ form.submit(class_="btn btn-primary btn-block mt-4") }}
           </div>
         </form>
       </div>

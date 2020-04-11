@@ -4,15 +4,17 @@ from sqlalchemy.sql.expression import func
 from flask_migrate import Migrate
 import json
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField, RadioField
+from wtforms import StringField, SubmitField, RadioField
 from wtforms.validators import InputRequired, Length
 
+'''
 with open('./static/goals.json', 'r') as f:
     goals = json.load(f)
-'''
+
 with open('./static/teachers.json', 'r') as f:
     teachers = json.load(f)
 '''
+
 week = {'mon': 'Понедельник', 'tue': 'Вторник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница', 'sat': 'Суббота',
         'sun': 'Воскресенье'}
 times = {'time_1': '1-2', 'time_2': '3-5', 'time_3': '5-7', 'time_4': '7-10'}
@@ -23,6 +25,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Таблица для связи Many-to-Many для Teacher и Goal
+goal_teacher = db.Table('goals_teachers',
+                        db.Column('teacher_id', db.Integer, db.ForeignKey('teachers.id')),
+                        db.Column('goal_id', db.Integer, db.ForeignKey('goals.id')))
 
 
 # Модель учителя в бд
@@ -37,6 +44,16 @@ class Teacher(db.Model):
     goal = db.Column(db.String(350), nullable=False)
     free = db.Column(db.String(1000), nullable=False)
     reverse = db.relationship('Reserve')
+    goals = db.relationship('Goal', secondary=goal_teacher, back_populates='teachers')
+
+
+# Модель целей
+class Goal(db.Model):
+    __tablename__ = 'goals'
+    id = db.Column(db.Integer, primary_key=True)
+    aim = db.Column(db.String(50), nullable=False)
+    value = db.Column(db.String(100))
+    teachers = db.relationship('Teacher', secondary=goal_teacher, back_populates='goals')
 
 
 # Модель запроса на выбор времени
@@ -77,6 +94,7 @@ class SelectForm(FlaskForm):
     submit = SubmitField('Найдите мне преподователя')
 
 
+'''
 # заполнение таблицы учителей
 def db_teachers():
     for t in teachers:
@@ -85,30 +103,47 @@ def db_teachers():
         db.session.add(create_teacher)
     db.session.commit()
 
-
 # db_teachers()
+
+# Заполнение таблицы Goal
+def db_goal():
+    for i in goals:
+        temp = Goal(aim=i, value=goals[i])
+        db.session.add(temp)
+    db.session.commit()
+db_goal()
+
+def join_goal_teacher():
+    for teacher in db.session.query(Teacher).all():
+        teacher_goal = teacher.goal.split(', ')
+        for aim in teacher_goal:
+            goal = Goal.query.filter(Goal.aim == aim).scalar()
+            goal.teachers.append(teacher)
+
+        db.session.commit()
+join_goal_teacher()
+'''
 
 
 @app.route('/')
 def render_main():
     teacher = db.session.query(Teacher).order_by(func.random()).limit(6)
+    goals_ = db.session.query(Goal).all()
     temp_goal = {}
-    for i in goals:
-        temp_goal[i] = goals[i]
-    temp_goal['travel'] = '⛱' + goals['travel']
-    temp_goal['study'] = '🏫 ' + goals['study']
-    temp_goal['work'] = '🏢 ' + goals['work']
-    temp_goal['relocate'] = '🚜 ' + goals['relocate']
+    for i in goals_:
+        temp_goal[i.aim] = i.value
+    temp_goal['travel'] = '⛱' + temp_goal['travel']
+    temp_goal['study'] = '🏫 ' + temp_goal['study']
+    temp_goal['work'] = '🏢 ' + temp_goal['work']
+    temp_goal['relocate'] = '🚜 ' + temp_goal['relocate']
     return render_template('index.html', goals=temp_goal, teacher=teacher)
 
 
 @app.route('/goals/<goal>/')
 def render_goal(goal):
-    goal_teacher = db.session.query(Teacher).filter(Teacher.goal.like('%' + goal + '%')).order_by(Teacher.rating).all()
-    for i in goals:
-        if i == goal:
-            goal = goals[i]
-    return render_template('goal.html', goal=goal, teachers=goal_teacher)
+    teacher_query = db.session.query(Teacher).filter(Teacher.goal.like('%' + goal + '%')).order_by(Teacher.rating).all()
+    goals_ = db.session.query(Goal).filter(Goal.aim.like(goal)).first()
+    return render_template('goal.html', goal=goals_.value, teachers=teacher_query)
 
 
 @app.route('/profiles/<id_teacher>/')
@@ -116,17 +151,21 @@ def render_profiles(id_teacher):
     temp = db.session.query(Teacher).get_or_404(id_teacher)
     teacher = {"id": temp.id, "name": temp.name, "about": temp.about, "rating": temp.rating, "picture": temp.picture,
                "price": temp.price, "free": json.loads(temp.free)}
-    return render_template('profile.html', teacher=teacher, week=week, goals=goals)
+    goals_ = []
+    for i in temp.goals:
+        goals_.append(i.value)
+    return render_template('profile.html', teacher=teacher, week=week, goals=goals_)
 
 
 @app.route('/request/', methods=['GET', 'POST'])
 def render_request():
     form = SelectForm()
-    choice_goal = []
-    for i in goals:
-        choice_goal.append(tuple([i, goals[i]]))
+    choice_goal = []  # создание списка для формы (goal)
+    for i in db.session.query(Goal).all():
+        choice_goal.append(tuple([i.aim, i.value]))
     form.goal.choices = choice_goal
-    choice_time = []
+
+    choice_time = [] # создание списка для формы (limit_time)
     for i in times:
         choice_time.append(tuple([i, times[i]]))
     form.limit_time.choices = choice_time
@@ -136,8 +175,9 @@ def render_request():
                               time_learning=form.limit_time.data)
         db.session.add(select_order)
         db.session.commit()
+        goal_value = db.session.query(Goal).filter(Goal.aim.like(select_order.goal)).first()
         return render_template('request_done.html', name=form.name.data, phone=form.phone.data,
-                               time=times[form.limit_time.data], goal=goals[form.goal.data])
+                               time=times[form.limit_time.data], goal=goal_value.value)
     else:
         return render_template('request.html', form=form)
 

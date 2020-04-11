@@ -10,10 +10,8 @@
             <section class="teacher=info">
               <h1 class="h2">{{ teacher.name }}</h1>
               <p>
-                {% for goal in teacher.goals %}
-                  {% for i, j in goals.items() %}
-                    {% if goal == i %}<span class="badge badge-secondary mr-2">{{ j }}</span>{% endif %}
-                  {% endfor %}
+                {% for goal in goals %}
+                  <span class="badge badge-secondary mr-2">{{ goal }}</span>
                 {% endfor %}
               Рейтинг: {{ teacher.rating }} Ставка: {{ teacher.price }} / час</p>
               <p>{{ teacher.about }}</p>
